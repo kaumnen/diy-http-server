@@ -1,19 +1,32 @@
+import socket
 import unittest as ut
-import requests as rq
-from server import Server_operations
-from config import Server_config
 
+class Test_responses(ut.TestCase):
 
-http_server_config = Server_config('127.0.0.1', 5525)
-while not http_server_config.connection_established:
-    http_server_ops = http_server_config.listening()
+    def setUp(self):
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.connect(('127.0.0.1', 5525))
 
-class testResponses(ut.TestCase):
-    def GETtest(self):
+    def tearDown(self):
+        self.s.close()
+    
+    def testGET(self):
         
-        test = [http_server_config.client_socket]
-        self.assertEqual()
+        self.s.send('GET word\n'.encode('utf-8'))
+        recieve = self.s.recv(4096).decode().strip()
+        self.assertEqual(receive, 'DEFINITION - definition')
 
+    def testSET(self):
+        
+        self.s.send('SET new one two three\n'.encode('utf-8'))
+        recieve = self.s.recv(4096).decode().strip()
+        self.assertEqual(receive, 'Finishing..\nAdded following definition:\n\n#####\n# new: one two three\n#####')
 
+    def testEXIT(self):
+        
+        self.s.send('EXIT'.encode('utf-8'))
+        recieve = self.s.recv(4096).decode().strip()
+        self.assertEqual(recieve, 'Sending connection closing order. Please wait...')
 
-#still to be finished
+if __name__ == '__main__':
+    ut.main()

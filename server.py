@@ -11,10 +11,11 @@ class Server_operations:
     #maintaining connection as long as signal for terminating connection is not received
     def maintaining_connection(self):
         if not self.shutdown:
-            self.client_socket.send('>>% '.encode('ascii'))
+            self.client_socket.send('>>% '.encode('utf-8'))
             self.reply = self.client_socket.recv(1024).decode().strip()
+
         else:
-            self.send_message_to_client('\n\nConnection closed. Thank you for your time! :)\n\n')
+            self.client_socket.send('\n\nConnection closed. Thank you for your time! :)\n\n'.encode('utf-8'))
 
     #GET method
     def get_definition(self):
@@ -29,7 +30,7 @@ class Server_operations:
         if len(self.reply.split()) < 3:
             self.client_socket.send('Error! Type HELP for more information.\n'.encode('utf-8'))
         else:    
-            new_combo = reply.split()
+            new_combo = self.reply.split()
             self.protocol_beta[new_combo[1]] = ' '.join(new_combo[2:])
             
             self.client_socket.send('\nFinishing..\n'.encode('utf-8'))
@@ -38,7 +39,7 @@ class Server_operations:
             self.client_socket.send('Added following definition:\n'.encode('utf-8'))
 
             self.client_socket.send('\n#####\n'.encode('utf-8'))
-            self.client_socket.send(f'# {new_combo[1]}: {protocol_beta[new_combo[1]]}'.encode('utf-8'))
+            self.client_socket.send(f'# {new_combo[1]}: {self.protocol_beta[new_combo[1]]}'.encode('utf-8'))
             self.client_socket.send('\n#####\n'.encode('utf-8'))
     
     #ALL method / displaying all words and their definitions
@@ -71,4 +72,4 @@ class Server_operations:
         self.client_socket.send('Sending connection closing order. Please wait...'.encode('utf-8'))
         time.sleep(2)
 
-        self.client_socket.close()
+        self.shutdown = True

@@ -10,7 +10,7 @@ class Server_config:
         self.connection_established = False
 
     #listening as long as there is not a connection
-    def listening(self, n_of_connections = 1):
+    def listening(self, n_of_connections = 5):
         self.s.listen(n_of_connections)
         self.client_socket, self.address = self.s.accept()
 
