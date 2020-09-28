@@ -1,5 +1,6 @@
 import socket
 import time
+import asyncio
 
 class Server_operations:
 
@@ -7,15 +8,6 @@ class Server_operations:
         self.client_socket = client_socket
         self.protocol_beta = {'word':'definition'}
         self.shutdown = False
-
-    #maintaining connection as long as signal for terminating connection is not received
-    def maintaining_connection(self):
-        if not self.shutdown:
-            self.client_socket.send('>>% '.encode('utf-8'))
-            self.reply = self.client_socket.recv(1024).decode().strip()
-
-        else:
-            self.client_socket.send('\n\nConnection closed. Thank you for your time! :)\n\n'.encode('utf-8'))
 
     #GET method
     def get_definition(self):
@@ -73,3 +65,30 @@ class Server_operations:
         time.sleep(2)
 
         self.shutdown = True
+
+    #maintaining connection as long as signal for terminating connection is not received
+    async def maintaining_connection(self):
+        while not self.shutdown:
+            self.client_socket.send('>>% '.encode('utf-8'))
+            self.reply = self.client_socket.recv(1024).decode().strip() 
+
+            if 'GET' in self.reply:
+                self.get_definition()
+
+            elif 'SET' in self.reply:
+                self.set_definition()
+
+            elif self.reply == 'ALL':
+                self.display_definitions()
+
+            elif self.reply == 'CLEAR':
+                self.clear_definitions()
+
+            elif self.reply == 'HELP':
+                self.display_help()
+            
+            elif self.reply == 'EXIT':
+                self.terminate_connection()
+
+            elif self.shutdown:
+                self.terminate_connection()
