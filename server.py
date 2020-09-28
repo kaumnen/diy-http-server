@@ -9,8 +9,13 @@ class Server_operations:
         self.protocol_beta = {'word':'definition'}
         self.shutdown = False
 
+    async def communication(self):
+        
+            self.client_socket.send('>>% '.encode('utf-8'))
+            self.reply = self.client_socket.recv(1024).decode().strip() 
+
     #GET method
-    def get_definition(self):
+    async def get_definition(self):
         if len(self.reply.split()) == 2:
                 try:
                     self.client_socket.send(f'\nDEFINITION - {str(self.protocol_beta[self.reply.split()[1]])}\n\n'.encode('utf-8'))
@@ -18,7 +23,7 @@ class Server_operations:
                     self.client_socket.send(f'\nERROR - word \'{self.reply.split()[1]}\' is not defined!\n\n'.encode('utf-8'))
     
     #SET method
-    def set_definition(self):
+    async def set_definition(self):
         if len(self.reply.split()) < 3:
             self.client_socket.send('Error! Type HELP for more information.\n'.encode('utf-8'))
         else:    
@@ -35,7 +40,7 @@ class Server_operations:
             self.client_socket.send('\n#####\n'.encode('utf-8'))
     
     #ALL method / displaying all words and their definitions
-    def display_definitions(self):
+    async def display_definitions(self):
         self.client_socket.send('These are all defined words:\n'.encode('utf-8'))
         self.client_socket.send('\n#####\n# '.encode('utf-8'))
         
@@ -45,14 +50,14 @@ class Server_operations:
         self.client_socket.send('\n#####\n\n'.encode('utf-8'))
 
     #CLEAR method / clears all words and their definitions
-    def clear_definitions(self):
+    async def clear_definitions(self):
         self.client_socket.send('\nClearing all definitions. Please wait...\n'.encode('utf-8'))
-        time.sleep(2)
+        await asyncio.sleep(2)
         self.protocol_beta.clear()
         self.client_socket.send('All definitions are deleted now.\n\n'.encode('utf-8'))
 
     #HELP method / displays all available commands
-    def display_help(self):
+    async def display_help(self):
         self.client_socket.send('These are all commands you can use, make sure to CAPITALISE:\n'.encode('utf-8'))
 
         self.client_socket.send('\n#####\n'.encode('utf-8'))
@@ -60,35 +65,36 @@ class Server_operations:
         self.client_socket.send('\n#####\n\n'.encode('utf-8'))
 
     #EXIT method / terminating connection
-    def terminate_connection(self):
+    async def terminate_connection(self):
         self.client_socket.send('Sending connection closing order. Please wait...'.encode('utf-8'))
-        time.sleep(2)
-
         self.shutdown = True
+        await asyncio.sleep(2)
+        self.client_socket.close()
 
     #maintaining connection as long as signal for terminating connection is not received
     async def maintaining_connection(self):
+        
         while not self.shutdown:
-            self.client_socket.send('>>% '.encode('utf-8'))
-            self.reply = self.client_socket.recv(1024).decode().strip() 
+            
+            await self.communication()
 
             if 'GET' in self.reply:
-                self.get_definition()
+                await self.get_definition()
 
             elif 'SET' in self.reply:
-                self.set_definition()
+                await self.set_definition()
 
             elif self.reply == 'ALL':
-                self.display_definitions()
+                await self.display_definitions()
 
             elif self.reply == 'CLEAR':
-                self.clear_definitions()
+                await self.clear_definitions()
 
             elif self.reply == 'HELP':
-                self.display_help()
+                await self.display_help()
             
             elif self.reply == 'EXIT':
-                self.terminate_connection()
+                await self.terminate_connection()
 
             elif self.shutdown:
-                self.terminate_connection()
+                await self.terminate_connection()
