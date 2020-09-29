@@ -13,14 +13,12 @@ class Server_config:
     async def listening(self, n_of_connections = 1):
 
         #listen for connection
-        
+        self.s.listen(n_of_connections)
         
         while True:
             self.client_socket, self.address = self.s.accept()
-            self.s.listen(n_of_connections)
-
+            
             #when connection happens, returns server object, who is initialised with client_socket object
             
-            print(f'Connection from {self.address} has been established!')
-            await asyncio.create_task(Server_operations(self.client_socket).communication())
+            await asyncio.create_task(Server_operations(self.client_socket, self.address).communication())
             

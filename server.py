@@ -4,15 +4,16 @@ import asyncio
 
 class Server_operations:
 
-    def __init__(self, client_socket):
+    def __init__(self, client_socket, address):
         self.client_socket = client_socket
         self.protocol_beta = {'word':'definition'}
+        print(f'Connection from {address} has been established!')
         self.shutdown = False
 
     async def messenger(self, message):
         self.client_socket.send(message.encode('utf-8'))
 
-    def decoder(self):
+    async def decoder(self):
         return self.client_socket.recv(1024).decode().strip()   
 
     async def communication(self):
@@ -20,7 +21,7 @@ class Server_operations:
         
         while not self.shutdown:
             await self.messenger('>>% ')
-            self.reply = self.decoder() 
+            self.reply = await self.decoder() 
 
             #GET method
             if 'GET' in self.reply:
@@ -39,7 +40,7 @@ class Server_operations:
                     self.protocol_beta[new_combo[1]] = ' '.join(new_combo[2:])
                     
                     await self.messenger('\nFinishing..\n')
-                    time.sleep(2)
+                    await asyncio.sleep(2)
 
                     await self.messenger('Added following definition:\n')
 
