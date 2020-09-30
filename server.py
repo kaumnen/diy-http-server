@@ -1,85 +1,107 @@
 import asyncio
 
+async def handle_echo(reader, writer):
 
-class Server_operations:
+    writer.write('Welcome to the server!\n\nSend \'HELP\' to get list of available commands!\n\n'.encode())
+    await writer.drain()
 
-    def __init__(self, client_socket, address):
-        self.client_socket = client_socket
-        self.protocol_beta = {'word': 'definition'}
-        print(f'Connection from {address} has been established!')
-        self.shutdown = False
-        print(self.client_socket)
+    protocol_beta = {'word':'definition'}
 
-    async def messenger(self, message):
-        self.client_socket.send(message.encode())
+    while True:
+        writer.write('>>% '.encode())
+        await writer.drain()
+        data = await reader.read(100)
+        message = data.decode()
 
-    async def decoder(self):
-        return self.client_socket.recv(1024).decode().strip()
+        addr = writer.get_extra_info('peername')
+        print(f'Received {message} from {addr}')
 
-    async def communication(self):
-        await self.messenger('Welcome to the server!\n\nSend \'HELP\' to get list of available commands!\n\n')
+        # GET method
+        if 'GET' in message:
+            if len(message.split()) == 2:
+                try:
+                    writer.write(f'\nDEFINITION - {str(protocol_beta[message.split()[1]])}\n\n'.encode())
+                    await writer.drain()
+                except KeyError:
+                    writer.write(f'\nERROR - word \'{message.split()[1]}\' is not defined!\n\n'.encode())
+                    await writer.drain()
 
-        while not self.shutdown:
-            await self.messenger('>>% ')
-            self.reply = await self.decoder()
+        # SET method
+        elif 'SET' in message:
+            if len(message.split()) < 3:
+                writer.write('Error! Type HELP for more information.\n'.encode())
+                await writer.drain()
+            else:
+                new_combo = message.split()
+                protocol_beta[new_combo[1]] = ' '.join(new_combo[2:])
 
-            # GET method
-            if 'GET' in self.reply:
-                if len(self.reply.split()) == 2:
-                    try:
-                        await self.messenger(f'\nDEFINITION - {str(self.protocol_beta[self.reply.split()[1]])}\n\n')
-                    except KeyError:
-                        await self.messenger(f'\nERROR - word \'{self.reply.split()[1]}\' is not defined!\n\n')
-
-            # SET method
-            elif 'SET' in self.reply:
-                if len(self.reply.split()) < 3:
-                    await self.messenger('Error! Type HELP for more information.\n')
-                else:
-                    new_combo = self.reply.split()
-                    self.protocol_beta[new_combo[1]] = ' '.join(new_combo[2:])
-
-                    await self.messenger('\nFinishing..\n')
-                    await asyncio.sleep(2)
-
-                    await self.messenger('Added following definition:\n')
-
-                    await self.messenger('\n#####\n')
-                    await self.messenger(f'# {new_combo[1]}: {self.protocol_beta[new_combo[1]]}')
-                    await self.messenger('\n#####\n')
-
-            # ALL method / displaying all words and their definitions
-            elif self.reply == 'ALL':
-                await self.messenger('These are all defined words:\n')
-                await self.messenger('\n#####\n# ')
-
-                for i in self.protocol_beta.keys():
-                    await self.messenger(i)
-
-                await self.messenger('\n#####\n\n')
-
-            # CLEAR method / clears all words and their definitions
-            elif self.reply == 'CLEAR':
-                await self.messenger('\nClearing all definitions. Please wait...\n')
+                writer.write('\nFinishing..\n'.encode())
+                await writer.drain()
                 await asyncio.sleep(2)
-                self.protocol_beta.clear()
-                await self.messenger('All definitions are deleted now.\n\n')
 
-            # HELP method / displays all available commands
-            elif self.reply == 'HELP':
-                await self.messenger('These are all commands you can use, make sure to CAPITALISE:\n')
+                writer.write('Added following definition:\n'.encode())
+                await writer.drain()
 
-                await self.messenger('\n#####\n')
-                await self.messenger(
-                    '# GET - Get definition of word\n# SET - Set a definition for new word\n'
-                    '# CLEAR - Clear all definitions\n# ALL - List all definitions\n'
-                    '# HELP - View all available commands\n# EXIT - You guessed it :)'
-                                    )
-                await self.messenger('\n#####\n\n')
+                writer.write('\n#####\n'.encode())
+                await writer.drain()
+                writer.write(f'# {new_combo[1]}: {protocol_beta[new_combo[1]]}'.encode())
+                await writer.drain()
+                writer.write('\n#####\n'.encode())
+                await writer.drain()
 
-            # EXIT method / terminating connection
-            elif self.reply == 'EXIT':
-                await self.messenger('Sending connection closing order. Please wait...')
-                self.shutdown = True
-                await asyncio.sleep(2)
-                self.client_socket.close()
+        # ALL method / displaying all words and their definitions
+        elif 'ALL' in message:
+            writer.write('These are all defined words:\n'.encode())
+            await writer.drain()
+            writer.write('\n#####\n# '.encode())
+            await writer.drain()
+
+            for i in protocol_beta.keys():
+                writer.write(i.encode())
+                await writer.drain()
+
+            writer.write('\n#####\n\n'.encode())
+            await writer.drain()
+
+        # CLEAR method / clears all words and their definitions
+        elif 'CLEAR' in message:
+            writer.write('\nClearing all definitions. Please wait...\n'.encode())
+            await writer.drain()
+            await asyncio.sleep(2)
+            protocol_beta.clear()
+            writer.write('All definitions are deleted now.\n\n'.encode())
+            await writer.drain()
+
+        # HELP method / displays all available commands
+        elif 'HELP' in message:
+            writer.write('These are all commands you can use, make sure to CAPITALISE:\n'.encode())
+            await writer.drain()
+
+            writer.write('\n#####\n'.encode())
+            await writer.drain()
+            writer.write(
+                '# GET - Get definition of word\n# SET - Set a definition for new word\n'
+                '# CLEAR - Clear all definitions\n# ALL - List all definitions\n'
+                '# HELP - View all available commands\n# EXIT - You guessed it :)'.encode()
+                                )
+            await writer.drain()
+            writer.write('\n#####\n\n'.encode())
+            await writer.drain()
+
+        # EXIT method / terminating connection
+        elif 'EXIT' in message:
+            writer.write('Sending connection closing order. Please wait...'.encode())
+            await writer.drain()
+            shutdown = True
+            await asyncio.sleep(2)
+            writer.close()
+            break
+
+async def main():
+
+    server = await asyncio.start_server(handle_echo, '127.0.0.1', 8888)
+
+    async with server:
+        await server.serve_forever()
+
+asyncio.run(main())
