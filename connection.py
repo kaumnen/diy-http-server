@@ -17,6 +17,6 @@ class Server_config:
         while True:
             client_socket, address = self.s.accept()
 
-            # when connection happens, returns server object, who is initialised with client_socket object
+            # when connection happens, returns server object, who is initialised with client_socket and address object
 
             asyncio.create_task(Server_operations(client_socket, address).communication())
