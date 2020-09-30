@@ -8,11 +8,12 @@ class Server_operations:
         self.protocol_beta = {'word': 'definition'}
         print(f'Connection from {address} has been established!')
         self.shutdown = False
+        print(self.client_socket)
 
     async def messenger(self, message):
         self.client_socket.send(message.encode())
 
-    def decoder(self):
+    async def decoder(self):
         return self.client_socket.recv(1024).decode().strip()
 
     async def communication(self):
@@ -20,7 +21,7 @@ class Server_operations:
 
         while not self.shutdown:
             await self.messenger('>>% ')
-            self.reply = self.decoder()
+            self.reply = await self.decoder()
 
             # GET method
             if 'GET' in self.reply:
