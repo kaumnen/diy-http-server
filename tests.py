@@ -1,6 +1,6 @@
 import socket
 import unittest as ut
-import time
+
 
 class Test_responses(ut.TestCase):
 
@@ -10,12 +10,14 @@ class Test_responses(ut.TestCase):
 
     def tearDown(self):
         self.s.send('EXIT'.encode('utf-8'))
+        self.s.close()
 
     def testGET(self):
         self.s.recv(1024)
         self.s.send('GET word'.encode('utf-8'))
         self.s.recv(1024)
         self.assertEqual(self.s.recv(4096).decode().strip(), 'DEFINITION - definition')
+
 
 if __name__ == '__main__':
     ut.main()
