@@ -1,26 +1,33 @@
 import asyncio
 
 
+# function for sending a message to client
 async def writing_to_client(sender, message):
     sender.write(message.encode())
     await sender.drain()
 
 
+# function that handles connection with a client
 async def handle_echo(reader, writer):
     await writing_to_client(writer, 'Welcome to the server!\n\nSend \'HELP\' to get list of available commands!\n\n')
 
     addr = writer.get_extra_info('peername')
     print(f'[*] Connected to {addr}!')
 
+    # dictionary which holds simple word:definition pairs
     protocol_beta = {'word': 'definition'}
 
+    # with connection on, function accordingly
     while True:
         await writing_to_client(writer, '>>% ')
 
+        # receiving messages from client
         data = await reader.read(100)
         message = data.decode()
 
         print(f'Received {message} from {addr}')
+
+        # if statements to decide how to respond
 
         # GET method
         if 'GET' in message:
@@ -33,10 +40,12 @@ async def handle_echo(reader, writer):
 
         # SET method
         elif 'SET' in message:
+            # this checks if user provided correct pattern
             if len(message.split()) < 3:
                 await writing_to_client(writer, 'Error! Type HELP for more information.\n')
 
             else:
+                # splitting message and making new key:value pair for a dictionary
                 new_combo = message.split()
                 protocol_beta[new_combo[1]] = ' '.join(new_combo[2:])
 
@@ -53,6 +62,7 @@ async def handle_echo(reader, writer):
             await writing_to_client(writer, 'These are all defined words:\n')
             await writing_to_client(writer, '\n#####\n# ')
 
+            #going through dictionary keys and printing them to client
             for i in protocol_beta.keys():
                 await writing_to_client(writer, i + '  ')
             await writing_to_client(writer, '\n#####\n\n')
@@ -62,6 +72,7 @@ async def handle_echo(reader, writer):
             await writing_to_client(writer, '\nClearing all definitions. Please wait...\n')
 
             await asyncio.sleep(2)
+            # wiping dictionary
             protocol_beta.clear()
             await writing_to_client(writer, 'All definitions are deleted now.\n\n')
 
@@ -80,16 +91,19 @@ async def handle_echo(reader, writer):
         elif 'EXIT' in message:
             await writing_to_client(writer, 'Sending connection closing order. Please wait...')
             await asyncio.sleep(2)
+            # closing connection to client
             writer.close()
             print(f'[*] Disconnected from {addr}!')
             break
 
 
 async def main():
+    # starting server
     server = await asyncio.start_server(handle_echo, '127.0.0.1', 8888)
 
+    # keeping server alive over and over again
     async with server:
         await server.serve_forever()
 
-
+# run program
 asyncio.run(main())
