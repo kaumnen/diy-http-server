@@ -6,9 +6,9 @@ No need for additional explanation. :D
 1 . You need to get a copy for yourself:
 
 ```commandline
-% git clone https://github.com/komnen0v1c/diy-http-server.git
+git clone https://github.com/komnen0v1c/diy-http-server.git
 
-% cd diy-http-server
+cd diy-http-server
 ```
 
 2 . Install a package:
