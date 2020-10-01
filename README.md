@@ -28,7 +28,7 @@ python3 server.py
 netcat -v -v localhost 8888
 ```
 
-/ If you see an error, just run following code, and try again:
+_. If you see an error, just run following code, and try again:
 
 ```commandline
 pip3 install netcat
