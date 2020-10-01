@@ -1,4 +1,4 @@
-#Simple Http server
+# Simple Http server
 
 No need for additional explanation. :D
 
@@ -6,9 +6,9 @@ No need for additional explanation. :D
 1 . You need to get a copy for yourself:
 
 ```commandline
-% git clone https://github.com/komnen0v1c/diy-http-server.git
+git clone https://github.com/komnen0v1c/diy-http-server.git
 
-% cd diy-http-server
+cd diy-http-server
 ```
 
 2 . Install a package:
@@ -28,7 +28,7 @@ python3 server.py
 netcat -v -v localhost 8888
 ```
 
-/ If you see an error, just run following code, and try again:
+_ . If you see an error, just run following code, and try again:
 
 ```commandline
 pip3 install netcat
