@@ -18,5 +18,6 @@ class Test_responses(ut.TestCase):
         self.s.recv(1024)
         self.assertEqual(self.s.recv(4096).decode().strip(), 'DEFINITION - definition')
 
+
 if __name__ == '__main__':
     ut.main()

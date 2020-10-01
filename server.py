@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 
 # function for sending a message to client
@@ -9,28 +10,52 @@ async def writing_to_client(sender, message):
 
 # function that handles connection with a client
 async def handle_echo(reader, writer):
-    await writing_to_client(writer, 'Welcome to the server!\n\nSend \'HELP\' to get list of available commands!\n\n')
+    try:
+        await writing_to_client(writer, 'Welcome to the server!\n\n'
+                                        'Send \'HELP\' to get list of available commands!\n\n')
+    except:
+        writer.close()
 
     addr = writer.get_extra_info('peername')
     print(f'[*] Connected to {addr}!')
 
+    #make log file
+    logging.basicConfig(filename='communication.log', filemode='a', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
     # dictionary which holds simple word:definition pairs
     protocol_beta = {'word': 'definition'}
 
+    # list of all methods used in HTTP request
+    METHODS = ['OPTIONS', 'GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'TRACE', 'CONNECT']
+
     # with connection on, function accordingly
     while True:
-        await writing_to_client(writer, '>>% ')
+        try:
+            await writing_to_client(writer, '>>% ')
 
-        # receiving messages from client
-        data = await reader.read(100)
-        message = data.decode()
+            # receiving messages from client
+            data = await reader.read(10000)
+            message = data.decode()
+        except:
+            break
 
         print(f'Received {message} from {addr}')
 
+        request = message.split(' ')
+
         # if statements to decide how to respond
+        # HTTP request
+
+        if request[0] in METHODS and len(request) > 2:
+            method = request[0]
+            resource = request[1]
+            http_version = request[2]
+
+            print(f'\n{method}  {resource}  {http_version} \n[*] Disconnected from {addr}!')
+            break
 
         # GET method
-        if 'GET' in message:
+        elif 'GET' in message:
             if len(message.split()) == 2:
                 try:
                     await writing_to_client(writer, f'\nDEFINITION - {str(protocol_beta[message.split()[1]])}\n\n')
@@ -62,7 +87,7 @@ async def handle_echo(reader, writer):
             await writing_to_client(writer, 'These are all defined words:\n')
             await writing_to_client(writer, '\n#####\n# ')
 
-            #going through dictionary keys and printing them to client
+            # going through dictionary keys and printing them to client
             for i in protocol_beta.keys():
                 await writing_to_client(writer, i + '  ')
             await writing_to_client(writer, '\n#####\n\n')
@@ -91,10 +116,15 @@ async def handle_echo(reader, writer):
         elif 'EXIT' in message:
             await writing_to_client(writer, 'Sending connection closing order. Please wait...')
             await asyncio.sleep(2)
-            # closing connection to client
-            writer.close()
             print(f'[*] Disconnected from {addr}!')
+            # closing connection to client
             break
+
+        else:
+            # if server receives invalid method, log error in file
+            logging.error(f'[ {message.split()[0]} ] - Invalid method detected!')
+
+    writer.close()
 
 
 async def main():
@@ -104,6 +134,7 @@ async def main():
     # keeping server alive over and over again
     async with server:
         await server.serve_forever()
+
 
 # run program
 asyncio.run(main())
