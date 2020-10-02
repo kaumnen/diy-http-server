@@ -3,6 +3,7 @@ import logging
 
 print('Listening on 127.0.0.1:8888')
 
+
 # function for sending a message to client
 async def writing_to_client(sender, message):
     sender.write(message.encode())
@@ -11,16 +12,17 @@ async def writing_to_client(sender, message):
 
 # function that handles connection with a client
 async def handle_echo(reader, writer):
-
     addr = writer.get_extra_info('peername')
     print(f'[*] Connected to {addr}!')
     shutdown = False
 
-    #make log file
-    logging.basicConfig(filename='communication.log', filemode='a', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # make log file
+    logging.basicConfig(filename='communication.log', filemode='a',
+                        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-    # list of all methods used in HTTP request
-    METHODS = ['OPTIONS', 'GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'TRACE', 'CONNECT']
+    # list of all methods used in HTTP request, and headers u can find in every http request from browser
+    methods = ['OPTIONS', 'GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'TRACE', 'CONNECT']
+    usual_headers = ['Host:', 'Connection:', 'User-Agent:', 'Accept:']
 
     # with connection on, function accordingly
     while True:
@@ -30,29 +32,27 @@ async def handle_echo(reader, writer):
 
         http_request_lines = message.split('\r\n')
         request = [x.split(' ') for x in http_request_lines]
-        USUALL_HEADERS = ['Host:', 'Connection:', 'User-Agent:', 'Accept:']
-        # if statements to decide how to respond
+
         # HTTP request
-        if request[0][0] in METHODS:
+        if request[0][0] in methods:
 
             # retrieve http first header
-            method = request[0][0]
             resource = request[0][1]
             http_version = request[0][2]
 
             # retrieve all other http headers in dictionary form
-            HEADERS = {}
+            headers = {}
             for i in request[1:]:
                 if i:
                     key = i[0]
                     value = ' '.join(i[1:])
 
-                    HEADERS[key] = value
+                    headers[key] = value
 
             # checking if header is valid by ensuring that all of usual headers are present in request
-            for j in USUALL_HEADERS:
+            for j in usual_headers:
 
-                if j not in HEADERS.keys():
+                if j not in headers.keys():
                     await writing_to_client(writer,
                                             f'{http_version} 400 Bad Request \r\n\r\nI\'m sorry, I don\'t understand!')
                     logging.error(f'[ j ] - Header not found! Bad request - 400.')
@@ -71,12 +71,12 @@ async def handle_echo(reader, writer):
                     break
 
             # if file doesnt exist
-            except IOError as e:
-                await writing_to_client(writer, f'{http_version} 404 Not Found \r\n\r\nError! We don\'t have that file!')
+            except IOError:
+                await writing_to_client(writer,
+                                        f'{http_version} 404 Not Found \r\n\r\nError! We don\'t have that file!')
 
             finally:
                 break
-
 
         else:
             # if server receives invalid method, log error in file

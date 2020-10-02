@@ -1,37 +1,48 @@
 # Simple Http server
+No additional info required. :D
 
-No need for additional explanation. :D
 
-## Running
-1 . You need to get a copy for yourself:
+## Prerequisites
+First you need to get a copy for yourself:
 
 ```commandline
 git clone https://github.com/komnen0v1c/diy-http-server.git
-
+```
+Then change directory:
+```commandline
 cd diy-http-server
 ```
-
-2 . Install a package:
+Install packages:
 
 ``` commandline
 pip3 install asyncio
+pip3 install netcat
 ```
 
-3 . Then run:
+## Running terminal socket
+
+1 . Run:
 ```commandline
 python3 server.py
 ```
 
-4 . Once you start a script, open another terminal window and run:
+2 . Once you start a script, open another terminal window and run:
 
 ```commandline
 netcat -v -v localhost 8888
 ```
 
-_ . If you see an error, just run following code, and try again:
+## Making browser requests
+
+1 . Run:
+```commandline
+python3 server_browser.py
+```
+
+2 . Once you start a script, open browser and search for:
 
 ```commandline
-pip3 install netcat
+127.0.0.1:8888/test.txt
 ```
 
 ## Misc
