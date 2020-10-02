@@ -1,12 +1,24 @@
 import socket
 import unittest as ut
+from configparser import ConfigParser
+
+
+# read config.ini file
+config_object = ConfigParser()
+config_object.read("config.ini")
+
+# get the data
+server_info = config_object["SERVERCONFIG"]
+
+server_address = server_info["host"]
+server_port = server_info["port"]
 
 
 class Test_responses(ut.TestCase):
 
     def setUp(self):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.connect(('127.0.0.1', 8888))
+        self.s.connect((server_address, int(server_port)))
 
     def tearDown(self):
         self.s.send('EXIT'.encode('utf-8'))
