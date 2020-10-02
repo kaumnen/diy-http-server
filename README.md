@@ -29,7 +29,7 @@ python3 server.py
 2 . Once you start a script, open another terminal window and run:
 
 ```commandline
-netcat -v -v localhost 8888
+netcat -v -v localhost 8080
 ```
 
 ## Making browser requests
