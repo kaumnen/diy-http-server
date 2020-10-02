@@ -1,5 +1,5 @@
 # Simple Http server
-No additional info required. :D
+If you want to configure 'server' to your needs, change config.ini file.
 
 
 ## Prerequisites
