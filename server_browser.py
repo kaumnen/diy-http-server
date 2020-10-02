@@ -30,7 +30,7 @@ async def handle_echo(reader, writer):
 
         http_request_lines = message.split('\r\n')
         request = [x.split(' ') for x in http_request_lines]
-        USUALL_HEADERS = ['Host:', 'Connection:', 'Cache-Control:', 'User-Agent:', 'Accept:']
+        USUALL_HEADERS = ['Host:', 'Connection:', 'User-Agent:', 'Accept:']
         # if statements to decide how to respond
         # HTTP request
         if request[0][0] in METHODS:
@@ -49,11 +49,8 @@ async def handle_echo(reader, writer):
 
                     HEADERS[key] = value
 
-            print(USUALL_HEADERS)
-            print(HEADERS.keys())
+            # checking if header is valid by ensuring that all of usual headers are present in request
             for j in USUALL_HEADERS:
-                print(j)
-                print(j in USUALL_HEADERS)
 
                 if j not in HEADERS.keys():
                     await writing_to_client(writer,

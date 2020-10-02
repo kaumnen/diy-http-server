@@ -11,7 +11,7 @@ async def writing_to_client(sender, message):
 async def handle_echo(reader, writer):
 
     await writing_to_client(writer, 'Welcome to the server!\n\n'
-                                        'Send \'HELP\' to get list of available commands!\n\n')
+                                    'Send \'HELP\' to get list of available commands!\n\n')
 
     addr = writer.get_extra_info('peername')
     print(f'[*] Connected to {addr}!')
@@ -94,10 +94,6 @@ async def handle_echo(reader, writer):
             print(f'[*] Disconnected from {addr}!')
             # closing connection to client
             break
-
-        else:
-            # if server receives invalid method, log error in file
-            logging.error(f'[ {message.split()[0]} ] - Invalid method detected!')
 
     writer.close()
 
