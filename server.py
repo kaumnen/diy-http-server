@@ -1,5 +1,18 @@
 import asyncio
+from configparser import ConfigParser
 
+
+# read config.ini file
+config_object = ConfigParser()
+config_object.read("config.ini")
+
+# get the data
+server_info = config_object["SERVERCONFIG"]
+
+server_address = server_info["host"]
+server_port = server_info["port"]
+
+print(f'Listening on {server_address}:{server_port}')
 
 # function for sending a message to client
 async def writing_to_client(sender, message):
@@ -100,7 +113,7 @@ async def handle_echo(reader, writer):
 
 async def main():
     # starting server
-    server = await asyncio.start_server(handle_echo, '127.0.0.1', 8888)
+    server = await asyncio.start_server(handle_echo, str(server_address), server_port)
 
     # keeping server alive over and over again
     async with server:

@@ -1,8 +1,20 @@
 import asyncio
 import logging
+from configparser import ConfigParser
 
-print('Listening on 127.0.0.1:8888')
 
+# read config.ini file
+config_object = ConfigParser()
+config_object.read("config.ini")
+
+# get the data
+server_info = config_object["SERVERCONFIG_BROWSER"]
+
+server_address = server_info["host"]
+server_port = server_info["port"]
+server_web_directory = server_info["web_directory"]
+
+print(f'Listening on {server_address}:{server_port}')
 
 # function for sending a message to client
 async def writing_to_client(sender, message):
@@ -12,6 +24,7 @@ async def writing_to_client(sender, message):
 
 # function that handles connection with a client
 async def handle_echo(reader, writer):
+
     addr = writer.get_extra_info('peername')
     print(f'[*] Connected to {addr}!')
     shutdown = False
@@ -64,7 +77,7 @@ async def handle_echo(reader, writer):
 
             # response to client
             try:
-                with open('www/' + resource[1:]) as text:
+                with open(server_web_directory+ resource[1:]) as text:
                     file_text = text.readline()
 
                     await writing_to_client(writer, f'{http_version} 200 OK \r\n\r\n{file_text}')
@@ -89,7 +102,7 @@ async def handle_echo(reader, writer):
 
 async def main():
     # starting server
-    server = await asyncio.start_server(handle_echo, '127.0.0.1', 8888)
+    server = await asyncio.start_server(handle_echo, str(server_address), server_port)
 
     # keeping server alive over and over again
     async with server:
