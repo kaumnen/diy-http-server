@@ -47,11 +47,24 @@ async def handle_echo(reader, writer):
         # HTTP request
 
         if request[0] in METHODS and len(request) > 2:
+
+            # retrieve http first header
             method = request[0]
             resource = request[1]
             http_version = request[2]
 
-            print(f'\n{method}  {resource}  {http_version} \n[*] Disconnected from {addr}!')
+            # retrieve all other http headers in dictionary form
+            headers_list = message.split('\r\n')
+            HEADERS = {}
+            for i in headers_list[1:]:
+                if i:
+                    torn_apart = i.split(': ')
+                    key = torn_apart[0]
+                    value = torn_apart[1]
+
+                    HEADERS[key] = value
+
+            print(f'\n[*] Disconnected from {addr}!\n')
             break
 
         # GET method
