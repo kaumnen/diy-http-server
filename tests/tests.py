@@ -5,7 +5,7 @@ from configparser import ConfigParser
 
 # read config.ini file
 config_object = ConfigParser()
-config_object.read("config.ini")
+config_object.read("../config/config.ini")
 
 # get the data
 server_info = config_object["SERVERCONFIG"]
